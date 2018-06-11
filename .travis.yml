@@ -36,8 +36,8 @@ install:
 
   - conda create -q -n test-env samtools=$SAMTOOLS_VER r-base=$R_VER r-ggplot2=$GGPLOT_VER r-gridextra r-data.table r-svglite
   - conda activate test-env
-  - pip install tox-travis
+  - pip install tox-travis pysam
 
 script:
   - tox
-  - bash ci/run.sh
+  - source .tox/$TOXENV/bin/activate && bash ci/run.sh
