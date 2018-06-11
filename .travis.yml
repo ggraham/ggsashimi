@@ -40,4 +40,4 @@ install:
 
 script:
   - tox
-  - source .tox/$TOXENV/bin/activate && bash ci/run.sh
+  - bash ci/run.sh
