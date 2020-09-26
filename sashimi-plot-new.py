@@ -416,16 +416,17 @@ def gtf_for_ggplot(annotation, start, end, arrow_bins):
         gtfp = ggplot()
         if (length(ann_list[['introns']]) > 0) {
                 gtfp = gtfp + geom_segment(data=ann_list[['introns']], aes(x=start, xend=end, y=tx, yend=tx), size=0.3)
-                gtfp = gtfp + geom_segment(size=0.3, lineend="round", data=txarrows, aes(x=V1,xend=V2,y=tx,yend=tx), arrow=arrow(length=unit(0.075,"npc")))
+                gtfp = gtfp + geom_segment(size=0.3, lineend="round", data=txarrows, aes(x=V1,xend=V2,y=tx,yend=tx), arrow=arrow(length=unit(0.1,"npc")))
         }
         if (length(ann_list[['exons']]) > 0) {
-                gtfp = gtfp + geom_segment(data=ann_list[['exons']], aes(x=start, xend=end, y=tx, yend=tx), size=3, alpha=0.8)
+                gtfp = gtfp + geom_segment(data=ann_list[['exons']], aes(x=start, xend=end, y=tx, yend=tx), size=5, alpha=1)
         }
         gtfp = gtfp + scale_y_discrete(expand=c(0,0.5))
+        #gtfp = gtfp + scale_y_discrete(expand=c(0,10))
         gtfp = gtfp + scale_x_continuous(expand=c(0,0.25))
         gtfp = gtfp + coord_cartesian(xlim = c(%s,%s)) 
         gtfp = gtfp + labs(y=NULL)
-        gtfp = gtfp + theme(axis.line = element_blank(), axis.text.y=element_text(size=6), axis.text.x = element_blank(), axis.ticks = element_blank())
+        gtfp = gtfp + theme(axis.line = element_blank(), axis.text.x = element_blank(), axis.ticks = element_blank())
         """ %(start, end)
 
         return s

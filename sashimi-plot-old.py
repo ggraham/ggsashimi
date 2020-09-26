@@ -341,7 +341,7 @@ def make_introns(transcripts, exons, intersected_introns=None):
 
 
 def gtf_for_ggplot(annotation, start, end, arrow_bins):
-        arrow_space = int((end - start)/(arrow_bins/4))
+        arrow_space = int((end - start)/arrow_bins)
         s = """
 
         # data table with exons
@@ -416,16 +416,16 @@ def gtf_for_ggplot(annotation, start, end, arrow_bins):
         gtfp = ggplot()
         if (length(ann_list[['introns']]) > 0) {
                 gtfp = gtfp + geom_segment(data=ann_list[['introns']], aes(x=start, xend=end, y=tx, yend=tx), size=0.3)
-                gtfp = gtfp + geom_segment(size=0.3, lineend="round", data=txarrows, aes(x=V1,xend=V2,y=tx,yend=tx), arrow=arrow(length=unit(0.075,"npc")))
+                gtfp = gtfp + geom_segment(data=txarrows, aes(x=V1,xend=V2,y=tx,yend=tx), arrow=arrow(length=unit(0.02,"npc")))
         }
         if (length(ann_list[['exons']]) > 0) {
-                gtfp = gtfp + geom_segment(data=ann_list[['exons']], aes(x=start, xend=end, y=tx, yend=tx), size=3, alpha=0.8)
+                gtfp = gtfp + geom_segment(data=ann_list[['exons']], aes(x=start, xend=end, y=tx, yend=tx), size=5, alpha=1)
         }
         gtfp = gtfp + scale_y_discrete(expand=c(0,0.5))
         gtfp = gtfp + scale_x_continuous(expand=c(0,0.25))
         gtfp = gtfp + coord_cartesian(xlim = c(%s,%s)) 
         gtfp = gtfp + labs(y=NULL)
-        gtfp = gtfp + theme(axis.line = element_blank(), axis.text.y=element_text(size=6), axis.text.x = element_blank(), axis.ticks = element_blank())
+        gtfp = gtfp + theme(axis.line = element_blank(), axis.text.x = element_blank(), axis.ticks = element_blank())
         """ %(start, end)
 
         return s
@@ -450,12 +450,10 @@ def setup_R_script(h, w, b, label_dict):
         width = %(w)s
         theme_set(theme_bw(base_size=base_size))
         theme_update(
-                #plot.margin = unit(c(15,15,15,15), "pt"),
-                plot.margin = unit(c(0, 15, 5, 0), "pt"),
+                plot.margin = unit(c(15,15,15,15), "pt"),
                 panel.grid = element_blank(),
                 panel.border = element_blank(),
                 axis.line = element_line(size=0.5),
-                axis.text.x = element_text(size=8),
                 axis.title.x = element_blank(),
                 axis.title.y = element_text(angle=0, vjust=0.5)
         )
@@ -774,11 +772,8 @@ if __name__ == "__main__":
                         # Density plot
                         gp = ggplot(d) + geom_bar(aes(x, y), width=1, position='identity', stat='identity', fill=color_list[[id]], alpha=%(alpha)s)
                         gp = gp + labs(y=labels[[id]])
-                        #
-                        # gp = gp + theme(axis.text.x = element_blank())
-                        #
                         if(exists('coord_dict')) {
-                                gp = gp + scale_x_continuous(expand=c(0, 0.25), breaks = breaks_x_shrinked, labels = breaks_x, position="top")
+                                gp = gp + scale_x_continuous(expand=c(0, 0.25), breaks = breaks_x_shrinked, labels = breaks_x)
                         } else {
                                 gp = gp + scale_x_continuous(expand=c(0, 0.25))
                         }
@@ -788,7 +783,7 @@ if __name__ == "__main__":
                                 breaks_y = labeling::extended(0, maxheight, m = 4)
                                 gp = gp + scale_y_continuous(breaks = breaks_y)
                         } else {
-                                gp = gp + scale_y_continuous(breaks = breaks_y, limits = c(NA, maxheight*1.25))
+                                gp = gp + scale_y_continuous(breaks = breaks_y, limits = c(NA, maxheight))
                         }
 
                         # Aggregate junction counts
@@ -869,18 +864,15 @@ if __name__ == "__main__":
                                 maxWidth = gpGrob$widths[2+vs] + gpGrob$widths[3+vs];    # fix problems ggplot2 vs
                                 maxYtextWidth = gpGrob$widths[3+vs];                     # fix problems ggplot2 vs
                                 # Extract x axis grob (trim=F --> keep empty cells)
-                                xaxisGrob <- gtable_filter(gpGrob, "axis-t", trim=F)
+                                xaxisGrob <- gtable_filter(gpGrob, "axis-b", trim=F)
                                 xaxisGrob$heights[8+vs] = gpGrob$heights[1]              # fix problems ggplot2 vs
                                 x.axis.height = gpGrob$heights[7+vs] + gpGrob$heights[1] # fix problems ggplot2 vs
                         }
 
 
                         # Remove x axis from all density plots
-                        if (bam_index != 1){
-                          kept_names = gpGrob$layout$name[gpGrob$layout$name != "axis-t"]
-                          gpGrob <- gtable_filter(gpGrob, paste(kept_names, sep="", collapse="|"), trim=F)
-                        }
-                        
+                        kept_names = gpGrob$layout$name[gpGrob$layout$name != "axis-b"]
+                        gpGrob <- gtable_filter(gpGrob, paste(kept_names, sep="", collapse="|"), trim=F)
 
                         # Find max width of y text and y label and max width of y text
                         maxWidth = grid::unit.pmax(maxWidth, gpGrob$widths[2+vs] + gpGrob$widths[3+vs]); # fix problems ggplot2 vs
@@ -889,16 +881,13 @@ if __name__ == "__main__":
                 }
 
                 # Add x axis grob after density grobs BEFORE annotation grob
-                #density_grobs[["zx"]] = xaxisGrob
-                #density_grobs<-prepend(density_grobs, xaxis=xaxisGrob)
-                #density_grobs <- c(xaxisGrob, density_grobs)
+                density_grobs[["xaxis"]] = xaxisGrob
 
                 # Annotation grob
                 if (%(args.gtf)s == 1) {
                         gtfGrob = ggplotGrob(gtfp);
                         maxWidth = grid::unit.pmax(maxWidth, gtfGrob$widths[2+vs] + gtfGrob$widths[3+vs]); # fix problems ggplot2 vs
                         density_grobs[['gtf']] = gtfGrob;
-                        #density_grobs[['xaxis']] = xaxisGrob
                 }
 
                 # Reassign grob widths to align the plots
@@ -909,10 +898,9 @@ if __name__ == "__main__":
 
                 # Heights for density, x axis and annotation
                 heights = unit.c(
-                  #x.axis.height,
                         unit(rep(%(signal_height)s, length(density_list)), "in"),
-                        #x.axis.height,
-                        unit(%(ann_height)s*%(args.gtf)s, "in")# , x.axis.height
+                        x.axis.height,
+                        unit(%(ann_height)s*%(args.gtf)s, "in")
                         )
 
                 # Arrange grobs
