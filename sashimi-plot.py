@@ -454,8 +454,9 @@ def setup_R_script(h, w, b, label_dict):
                 plot.margin = unit(c(0, 15, 5, 0), "pt"),
                 panel.grid = element_blank(),
                 panel.border = element_blank(),
-                axis.line = element_line(size=0.5),
-                axis.text.x = element_text(size=8),
+                axis.line = element_line(size=rel(1), lineend = 'round'),
+                axis.ticks = element_line(lineend = 'round'),
+                axis.text.x = element_text(size=rel(0.75)),
                 axis.title.x = element_blank(),
                 axis.title.y = element_text(angle=0, vjust=0.5)
         )
